@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kelikamerahaku</title>
+  <link rel="stylesheet" href="">
+</head>
+<body>
+
+  <h1>Kelikamerahaku</h1>
+
+  <p>Syötä kenttään tien, paikkakunnan tai kamera-aseman nimen osa.</p>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="Tie tai paikkakunta">
+    <ul class="suggestions">
+      <li></li>
+    </ul>
+  </form>
+
+  <div id="camera-images">
+    
+
+  </div>
+
+<script>
+
+
+  //const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+  const endpoint = 'https://tie.digitraffic.fi/api/v1/metadata/camera-stations';
+
+  const stations = [];
+
+  /*
+  fetch(endpoint)
+          .then(blob => blob.json())
+          .then(data => console.log(data));
+  */
+
+  fetch(endpoint)
+          .then(blob => blob.json())
+          .then(data => stations.push(...data.features));
+
+
+
+  function findMatches(wordToMatch, stations) {
+    return stations.filter(station => {
+
+      const regex = new RegExp(wordToMatch, 'gi');
+
+      // names.fi - name in nice format, name - name in raw format
+      return (station.properties.name.match(regex)) || 
+             (station.properties.names.fi && station.properties.names.fi.match(regex))
+
+    });
+  }
+
+
+
+  // displays camera preset images
+  function displayPresetImages(matchArray) {
+
+    const presetsArray = matchArray[0].properties.presets;
+
+    console.log('perrsarray', presetsArray);
+
+    const images_html = presetsArray.map(preset => {
+
+      return `
+        <p>${preset.presentationName}</p>
+        <img src="${preset.imageUrl}"></img>
+      `;
+
+    }).join('');
+
+    console.log('images_html', images_html);
+
+    cameraImages.innerHTML = images_html;
+
+  }
+
+
+  // removes camera preset images
+  function clearPresetImages() {
+
+    cameraImages.innerHTML = '';
+
+  }
+
+
+
+  function displayMatches() {
+    const matchArray = findMatches(this.value, stations);
+    
+    const html = matchArray.map(station => {
+      return `
+        <li>
+          <span class="name">${station.properties.names.fi}</span>
+        </li>    
+      `;
+    }).join('');
+
+    suggestions.innerHTML = html;
+
+
+    // if only one suggestion, displays automatically camera presets
+    if (matchArray.length === 1) {
+
+      displayPresetImages(matchArray);
+
+    }
+
+    // if no suggestions, clears images
+    if (matchArray.length === 0) {
+
+      suggestions.innerHTML = '<li>Ei tuloksia</li>';
+      clearPresetImages();
+
+    }
+
+
+  }
+
+
+  const searchInput = document.querySelector('.search');
+  const suggestions = document.querySelector('.suggestions');
+  const cameraImages = document.getElementById('camera-images');
+
+  searchInput.addEventListener('change', displayMatches);
+  searchInput.addEventListener('keyup', displayMatches);
+
+
+
+
+</script>
+</body>
+</html>

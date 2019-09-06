@@ -1,2 +1,2 @@
 # road-camera-search
-Simple frontend search for Digitraffic road cameras 
+Simple frontend to search for Digitraffic Road Cameras
